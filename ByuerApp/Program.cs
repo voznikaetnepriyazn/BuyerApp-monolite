@@ -1,0 +1,38 @@
+using ByuerApp.Domain.Entities;
+using ByuerApp.Domain.Interfaces;
+using ByuerApp.Infrastructure;
+using Microsoft.Extensions.Configuration;
+
+var builder = WebApplication.CreateBuilder(args);//обьект для настройки параметров и сервисов приложения, args - аргументы командной строки
+
+// Add services to the container.
+//builder.Services.AddRazorPages(); добавилось автоматически, пока не стала убирать эту штуку, как поняла она несовместима с контроллерами
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();//не понимает че такое AddSwaggerGen
+builder.Services.AddScoped<IRepository<Customer>, CustomerRepository>();
+builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
+
+var app = builder.Build();//
+
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())//находится ли приложение в девелопмент среде, системная переменная app?? - на продакшене её не будет
+{
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+    app.UseSwagger();//не понимает че такое UseSwagger
+    app.UseSwaggerUI(); // не понимает че такое UseSwaggerUI
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+//app.MapRazorPages();
+
+app.Run();
