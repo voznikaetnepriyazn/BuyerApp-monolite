@@ -1,9 +1,11 @@
 ﻿using ByuerApp.Domain.Entities;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
+
 namespace ByuerApp.Domain.Interfaces
 {
-    public abstract class RepositoryBase
+    public abstract class RepositoryBase<T> 
+        where T : class
     {
         protected readonly string connectionString;
         public RepositoryBase(IConfiguration configuration)
@@ -11,13 +13,13 @@ namespace ByuerApp.Domain.Interfaces
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             this.connectionString = configuration.GetConnectionString("Main") ?? throw new ArgumentNullException("Ошибка конфигурации. Не заполнен параметр ConnectionStrings: MainConnectionString");
         }
-        //метод для get - почему для гетов один шаблонный метод, а для остальных методов - другой шаблон????
-        protected async Task<IEnumerable<T>> ReachToDb(string sql)//ошибка - не удалось найти пространство имен для Т
+        //метод с возвращением результата из бд
+        protected async Task<IEnumerable<T>> ReachToDb(string sql)
         {
             if (string.IsNullOrWhiteSpace(sql)) throw new ArgumentNullException(nameof(sql));//на вход в метод - конкретный запрос
 
-            var result = new List<T>();//ошибка - не удалось найти пространство имен для Т
-            using (var connection = new SqlConnection(connectionString.GetConnectionString("MainConnectionString")))//указываем строку подключения в скобках, не понимает че такое SqlConnection(connectionString
+            var result = new List<T>();
+            using (var connection = new SqlConnection(connectionString))//указываем строку подключения в скобках, не понимает че такое SqlConnection(connectionString
             {
                 using (var command = new SqlCommand(sql, connection))//аргументы - конкретный запрос и connection, не понимает че такое скл комманд
                 {
@@ -33,17 +35,17 @@ namespace ByuerApp.Domain.Interfaces
         }
         protected async Task ToDb(string sql)
         {
-            if (string.IsNullOrWhiteSpace(sql)) throw new ArgumentNullException(nameof(sql));//на вход в метод - конкретный запрос
+            if (string.IsNullOrWhiteSpace(sql)) throw new ArgumentNullException(nameof(sql));
 
-            using (var connection = new SqlConnection(connectionString))//ошибка та же
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                using (var command = new SqlCommand(sql, connection))//ошибка та же
+                using (var command = new SqlCommand(sql, connection))
                 {
                     await command.ExecuteNonQueryAsync();
                 }
             }
         }
-        protected abstract T GetEntityFromReader(SqlReader reader);//ошибка та же
+        protected abstract T GetEntityFromReader(SqlDataReader reader);
     }
 }

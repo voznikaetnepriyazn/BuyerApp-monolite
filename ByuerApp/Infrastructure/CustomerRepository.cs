@@ -1,10 +1,12 @@
 ﻿using ByuerApp.Domain.Interfaces;
 using ByuerApp.Domain.Entities;
+using Microsoft.Data.SqlClient;
 
 namespace ByuerApp.Infrastructure
 {
-    public class CustomerRepository: RepositoryBase,IRepository<Customer>//ошибка - не реализует последний метод, отсутствует аргумент для параметра configuration
+    public class CustomerRepository: RepositoryBase<Customer>,IRepository<Customer>
     {
+        public CustomerRepository(IConfiguration configuration) : base(configuration) { }
         public async Task AddAsync(Customer customer)
         {
             if (customer == null) throw new ArgumentNullException(nameof(customer));
@@ -16,21 +18,20 @@ namespace ByuerApp.Infrastructure
             await this.ToDb($"DELETE FROM dbo.Customer WHERE id='{Id}'");
         }
 
-        public async Task<IEnumerable<Customer>> GetAllAsync()//не все пути к коду возвращают значение
-        {
-            await this.ReachToDb($"SELECT * FROM dbo.Customer");
-        }
+        public async Task<IEnumerable<Customer>> GetAllAsync()
+            => await this.ReachToDb($"SELECT * FROM dbo.Customer");
 
-        public async Task<Customer> GetByIdAsync(Guid Id)//не все пути к коду возвращают значение
+        public async Task<Customer> GetByIdAsync(Guid Id)
         {
-            await this.ReachToDb($"SELECT * FROM dbo.Customer WHERE id='{Id}'");
+            var res = await this.ReachToDb($"SELECT * FROM dbo.Customer WHERE id='{Id}'");
+            return res?.SingleOrDefault();
         }
         public async Task UpdateAsync(Customer customer)
         {
             if (customer == null) throw new ArgumentNullException(nameof(customer));
-            await this.ToDb($"UPDATE dbo.Customer SET FullName='{customer.FullName}", Email='{customer.Email}', PasswordHash='{customer.PasswordHash}', CityId='{customer.CityId}', FullAddress='{customer.FullAddress}',PostalCode='{customer.PostalCode}' WHERE Id='{customer.Id}'"); 
-        }//в строчке выше синтаксические ошибки
-        protected override Customer GetEntityFromReader(SqlDataReader reader)//не понимает что такое SqlDataReader
+            await this.ToDb($"UPDATE dbo.Customer SET FullName='{customer.FullName}', Email = '{customer.Email}', PasswordHash='{customer.PasswordHash}', CityId='{customer.CityId}', FullAddress='{customer.FullAddress}',PostalCode='{customer.PostalCode}' WHERE Id='{customer.Id}'"); 
+        }
+        protected override Customer GetEntityFromReader(SqlDataReader reader)
         {
             return new Customer
             {
@@ -40,7 +41,7 @@ namespace ByuerApp.Infrastructure
                 PasswordHash = reader.GetString(reader.GetOrdinal("PasswordHash")),
                 CityId = reader.GetGuid(reader.GetOrdinal("CityId")),
                 FullAddress = reader.GetString(reader.GetOrdinal("FullAddress")),
-                PostalCode = reader.GetInt64(reader.GetOrdinal("PostalCode"))
+                PostalCode = reader.GetInt16(reader.GetOrdinal("PostalCode"))
             };
         }
     }

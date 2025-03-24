@@ -1,11 +1,12 @@
 ﻿using ByuerApp.Domain.Entities;
 using ByuerApp.Domain.Interfaces;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace ByuerApp.Infrastructure
 {
-    public class OrderRepository: RepositoryBase, IRepository<Order>//ошибка - не реализует последний метод, отсутствует аргумент для параметра configuration 
+    public class OrderRepository: RepositoryBase<Order>, IRepository<Order> 
     {
+        public OrderRepository(IConfiguration configuration) : base(configuration) { }
         public async Task AddAsync(Order order)
         {
             if (order == null) throw new ArgumentNullException(nameof(order));
@@ -17,27 +18,34 @@ namespace ByuerApp.Infrastructure
             await this.ToDb($"DELETE FROM dbo.Order WHERE id='{Id}'");
         }
 
-        public async Task<IEnumerable<Order>> GetAllAsync()//не все пути к коду возвращают значение
+        public async Task<IEnumerable<Order>> GetAllAsync()
         {
-            await this.ReachToDb($"SELECT * FROM dbo.Order");
+            var res1 = await this.ReachToDb($"SELECT Order.Id, Good.Id FROM dbo.Order INNER JOIN dbo.GoodInOrder ON Order.IdOfClient = GoodInOrder.IdOfClient INNER JOIN Good ON GoodInOrder.Id = Good.Id");
+            return res1;
+            //foreach (var abc in res1)//вывести для каждого заказа запрос в базу
+            //{
+                //await this.ReachToDb($"SELECT * FROM dbo.GoodInOrder");
+            //}//3 способ - inner join запрос
         }
 
-        public async Task<Order> GetByIdAsync(Guid Id)//не все пути к коду возвращают значение
+
+        public async Task<Order> GetByIdAsync(Guid Id) 
         {
-            await this.ReachToDb($"SELECT * FROM dbo.Order WHERE id='{Id}'");
+            var res = await this.ReachToDb($"SELECT * FROM dbo.Order WHERE id='{Id}'");
+            return res?.SingleOrDefault();
         }
-        public async Task UpdateAsync(Order order)
+
+            public async Task UpdateAsync(Order order)
         {
             if (order == null) throw new ArgumentNullException(nameof(order));
-            await this.ToDb($"UPDATE dbo.Order SET IdOfClient='{order.IdOfClient}' WHERE Id='{order.Id}'");
+            await this.ToDb($"UPDATE dbo.Order SET IdOfClient='{order.IdOfClient}' WHERE Id='{order.Id}'"); 
         }
-        protected override Order GetEntityFromReader(SqlDataReader reader)//не понимает что такое SqlDataReader
+        protected override Order GetEntityFromReader(SqlDataReader reader)
         {
             return new Order
             {
                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
-                IdOfClient = reader.GetGuid(reader.GetOrdinal("IdOfClient")),
-                GoodsinOrder = reader.GetGuid(reader.GetOrdinal("GoodsinOrder"))
+                IdOfClient = reader.GetGuid(reader.GetOrdinal("IdOfClient"))
             };
         }
     }
