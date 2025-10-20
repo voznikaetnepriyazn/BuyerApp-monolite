@@ -6,93 +6,65 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ByuerApp.Controllers
 {
-    [Route("api/customer")]
+    [Route("api/v1/customer")]
     [ApiController]
     public class CustomerController : ControllerBase
     {
         private readonly IRepository<Customer> customerRepository;
+        private readonly ICustomerServise customerServise;
 
-        public CustomerController(IRepository<Customer> customerRepository) 
+        public CustomerController(IRepository<Customer> customerRepository)
         {
-            this.customerRepository = customerRepository?? throw new ArgumentNullException(nameof(customerRepository));
+            this.customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
         }
         // GET: api/<ValuesController>
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            try
-            {
-                return Ok(await this.customerRepository.GetAllAsync());
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return Ok(await this.customerRepository.GetAllAsync());
         }
 
         // GET api/<ValuesController>/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid Id)
         {
-
-            try
+            var result = await this.customerRepository.GetByIdAsync(Id);
+            if (result == null)
             {
-                var result = await this.customerRepository.GetByIdAsync(Id);
-                if (result == null)
-                {
-                    return BadRequest("такого покупателя не найдено");
-                }
-                return Ok();
+                return BadRequest("такого покупателя не найдено");
             }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return Ok();
         }
 
         // POST api/<ValuesController>
         [HttpPost]
         public async Task<IActionResult> AddAsync(Customer customer)
         {
-            try
-            {
-                await customerRepository.AddAsync(customer);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            await customerRepository.AddAsync(customer);
+            return Ok();
         }
 
         // PUT api/<ValuesController>/5
         [HttpPut]
         public async Task<IActionResult> UpdateAsync(Customer customer)
         {
-            try
-            {
-                await this.customerRepository.UpdateAsync(customer);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            await this.customerRepository.UpdateAsync(customer);
+            return Ok();
         }
 
         // DELETE api/<ValuesController>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync(Guid Id)
         {
-            try
-            {
-                await this.customerRepository.DeleteAsync(Id);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            await this.customerRepository.DeleteAsync(Id);
+            return Ok();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> IsCustomerCreated(Guid Id)
+        {
+            await this.customerServise.IsCustomerCreated(Id);
+            return Ok();
         }
     }
 }

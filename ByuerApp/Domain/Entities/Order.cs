@@ -4,7 +4,10 @@
     {
         public Guid Id { get; set; }
         public Guid IdOfClient { get; set; }
-        public virtual ICollection<Good> GoodsinOrder { get; set; } = new List<Good>();
-        
+        public virtual IEnumerable<Good> GoodsinOrder { get; set; } = new List<Good>();
+        public IEnumerable<Good> Good { get; set; } = new List<Good>();
+        public Customer Customer { get; set; }
+        public Types Types { get; set; }
+
     }
 }

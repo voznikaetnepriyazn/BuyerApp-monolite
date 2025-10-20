@@ -3,11 +3,13 @@
     public class Customer
     {
         public Guid Id { get; set; }
-        public string FullName { get; set; }
+        public string Name { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
-        public Guid CityId { get; set; }
+        public string City { get; set; }
         public string FullAddress { get; set; }
         public int PostalCode { get; set; }
+        public int PhoneNumber { get; set; }
+        public IEnumerable<Order> Orders { get; set; } = new List<Order>();
     }
 }

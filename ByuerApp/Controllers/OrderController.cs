@@ -6,83 +6,61 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ByuerApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/order")]
     [ApiController]
     public class OrderController : ControllerBase
     {
         private readonly IRepository<Order> orderRepository;
+        private readonly IOrderServise orderServise;
 
-        public OrderController(IRepository<Order> orderRepository)
+        public OrderController(IRepository<Order> orderRepository, IOrderServise orderServise)
         {
             this.orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            this.orderServise = orderServise ?? throw new ArgumentNullException(nameof(orderServise));
         }
-        // GET: api/<ValuesController>
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
             return Ok(await this.orderRepository.GetAllAsync());
         }
 
-        // GET api/<ValuesController>/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid Id)
         {
-
-            try
-            {
-                return Ok(await this.orderRepository.GetByIdAsync(Id));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return Ok(await this.orderRepository.GetByIdAsync(Id));
         }
 
-        // POST api/<ValuesController>
         [HttpPost]
         public async Task<IActionResult> AddAsync(Order order)
         {
             if (order == null)
                 return BadRequest("нет заказа...");
-            try
+            else
             {
                 await this.orderRepository.AddAsync(order);
                 return Ok();
             }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
 
-        // PUT api/<ValuesController>/5
         [HttpPut]
         public async Task<IActionResult> UpdateAsync(Order order)
         {
-            try
-            {
                 await this.orderRepository.UpdateAsync(order);
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
 
-        // DELETE api/<ValuesController>/5
         [HttpDelete("{id}")]
         public async Task <IActionResult> DeleteAsync(Guid Id)
         {
-            try
-            {
                 await this.orderRepository.DeleteAsync(Id);
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> IsOrderCreated(Guid Id)
+        {
+            await this.orderServise.IsOrderCreated(Id);
+            return Ok();
         }
     }
 }
